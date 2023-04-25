@@ -2,7 +2,7 @@
 
 Introducing our new demo application! Our app provides a platform for users to create accounts, login, and search for other users within the app. With the ability to follow and unfollow other users, our app allows for personalized connection building and networking. As a registered user, you can easily see who is following you, providing valuable insights into your reach and influence within the app. With our intuitive interface and user-friendly features, our demo application is the perfect tool for those looking to expand their network and build connections with like-minded individuals. Whether you're seeking new business opportunities or simply looking to meet new people, our app has something for everyone. So why wait? Sign up today and start building your network!
 
-#What is implemented?
+# What is implemented?
 
 ## Server (Express)
 
