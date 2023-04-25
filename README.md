@@ -8,9 +8,9 @@ Introducing our new demo application! Our app provides a platform for users to c
 
 1) This is an application in which user can register itself.
 2) Authorization middleware has been implemented in this project.
-3) JWT token autherization has been implemented.
+3) JWT token authorization has been implemented.
 4) Server side routing has been implemented.
-5) Mongooes database support is available.
+5) Mongoos database support is available.
 6) Models use to store data in database.
 7) Nodemon is isntalled to quick reload on server.
 8) REST api is implemented.
