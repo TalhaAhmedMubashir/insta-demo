@@ -7,7 +7,8 @@ export async function signupFunction(Credentials) {
     },
     body: JSON.stringify(Credentials)
   }).catch((response) => { console.log("Catch error : ", response.message) })
-  return await response.json()
+  let data = await response.json()
+  alert(data.message)
 }
 
 export async function signinFunction(Credentials) {
@@ -27,8 +28,10 @@ export async function signinFunction(Credentials) {
     sessionStorage.setItem('fullname', data.user.fullName)
     sessionStorage.setItem('email', data.user.email)
     sessionStorage.setItem('verificationToken', data.accessToken);
+    
     return true
   }
+  alert(data.message)
   return false
 }
 
@@ -63,7 +66,6 @@ export async function addorremovefollowing(UserData){
         body: JSON.stringify({followingemail:UserData.owneremail,email:sessionStorage.getItem('email')})
       }).catch((error) => console.log("Search error :", error.message))
       let unfollowresponse = await response.json()
-      console.log("RESPONSE FRM SERVER FOR UNFOLLOW : ",unfollowresponse)
       return unfollowresponse
   }else{
     //To Follow

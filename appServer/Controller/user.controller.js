@@ -5,7 +5,6 @@ const jwt = require('jsonwebtoken');
 const saltRounds = 10;
 
 function register(req, res) {
-    //console.log("Request : ", request.body)
     const salt = bcrypt.genSaltSync(saltRounds);
     if (!req.body.password) {
         res.status(401).send({
@@ -18,25 +17,35 @@ function register(req, res) {
         email: req.body.email,
         password: hashedPassword
     })
-    //console.log("Request0 : ", newuser)
     return newuser;
 }
 
 exports.signup = async (req, res) => {
-    const newUser = register(req, res)
-    await newUser.save(newUser).then(
-        () => {
-            res.status(200).send({
-                message: "User Registered successfully"
-            })
-        }
-    ).catch(
-        (error) => {
-            res.status(500).send({
-                message: error.message
-            });
-        }
-    )
+    const { email } = req.body;
+
+    const user = await userSchema.findOne({ email: email });
+    if (!user) {
+        const newUser = register(req, res)
+        await newUser.save(newUser).then(
+            () => {
+                res.send({
+                    status: 200,
+                    message: "User Registered successfully"
+                })
+            }
+        ).catch(
+            (error) => {
+                res.send({
+                    status: 500,
+                    message: error.message
+                });
+            }
+        )
+    } else {
+        res.send({
+            message: "User already existed"
+        })
+    }
 }
 
 function isValidPassword(usergivenpassword, userdbpassword) {
@@ -48,11 +57,14 @@ exports.signin = async (req, res) => {
 
     const user = await userSchema.findOne({ email: email });
     if (!user) {
-        return res.status(404).send({ message: "User Not found." });
+        return res.send({
+            status: 404,
+            message: "User Not found."
+        });
     }
     if (!password) {
-        //console.log("empty password...")
-        res.status(401).send({
+        res.send({
+            status: 401,
             accessToken: null,
             message: "Invalid Password!"
         });
@@ -93,7 +105,6 @@ exports.getFollowers = async (req, res) => {
     const followers = user.followers.map((value) => value.email)
     const following = user.following.map((value) => value.email)
 
-    // console.log("Followers : ", followers, " Following :", following)
     const followingEmails = [];
     for (let i = 0; i < followers.length; i++) {
         const email = followers[i];
@@ -102,16 +113,14 @@ exports.getFollowers = async (req, res) => {
         }
     }
 
-    // console.log(followingEmails);
+
     const OBJECT = user.followers.map((value) => {
         if (followingEmails.find((val) => val === value.email)) {
-            // console.log('Current user following me : ',value.email)
             return { email: value.email, name: value.name, following: true }
         } else {
             return { email: value.email, name: value.name, following: false }
         }
     })
-    //console.log("Destructure : ",OBJECT)
 
     if (user.followers.length > 0) {
         res.send(JSON.stringify(OBJECT))
@@ -129,7 +138,6 @@ exports.getFollowing = async (req, res) => {
         }
     )
     if (user.following.length > 0) {
-        console.log("Following :",user.following)
         res.json({ following: user.following, success: true })
     }
     else {
@@ -145,16 +153,15 @@ exports.getNotification = async (req, res) => {
                 email
             }
         )
-        // console.log("Notification check : ",user[0].notification)
         if (user[0].notification.length > 0) {
             const NotificationMessage = user[0].notification.map(
                 (value) => {
                     const name = value.name
-                    return {name : name.charAt(0).toUpperCase() + name.slice(1), message: value.message , status: value.seen}
+                    return { name: name.charAt(0).toUpperCase() + name.slice(1), message: value.message, status: value.seen }
                 }
             )
             res.send(JSON.stringify(NotificationMessage))
-        }else{
+        } else {
             res.send(JSON.stringify(null))
         }
     } catch (error) {
@@ -164,56 +171,53 @@ exports.getNotification = async (req, res) => {
 exports.addFollowing = async (req, res) => {
     const email = req.body.email;
     const following = req.body.newFollowing
-    //console.log("DATA Following ADDING : ", req.body.newFollowing)
     try {
         const user = await userSchema.findOneAndUpdate(
-          { email: email },
-          { $push: { following}},
-          { new: true }
+            { email: email },
+            { $push: { following } },
+            { new: true }
         );
 
         const updatefollower = await userSchema.findOneAndUpdate(
             { email: following.email },
-            { $push: { followers : {name:user.name , email: user.email}}},
+            { $push: { followers: { name: user.name, email: user.email } } },
             { new: true }
         );
         await updatefollower.save();
         updatefollower = await userSchema.findOneAndUpdate(
             { email: following.email },
-            { $push: { notification : {name:user.name , email: user.email, message:" is following you", seen:false}}},
+            { $push: { notification: { name: user.name, email: user.email, message: " is following you", seen: false } } },
             { new: true }
         );
         await user.save();
         await updatefollower.save();
         res.json(user);
-      } catch (err) {
+    } catch (err) {
         res.json({ message: err });
-      }
+    }
 }
 exports.unFollow = async (req, res) => {
     const email = req.body.email;
     const followingemail = req.body.followingemail
-    // console.log(email," : following ", followingemail)
+
     try {
         const user = await userSchema.findOne(
-          { email: email },
+            { email: email },
         );
-        //console.log("Did i find user : ",user.email)
-        user.following = user.following.filter((Email) => Email ===followingemail);
-        //console.log("What happen to user : ",user)
+        user.following = user.following.filter((Email) => Email === followingemail);
         const updatefollower = await userSchema.findOne(
-            { email: followingemail},
+            { email: followingemail },
         );
 
-        updatefollower.followers = updatefollower.followers.filter((Email) => Email=== email);
-        
+        updatefollower.followers = updatefollower.followers.filter((Email) => Email === email);
+
         await user.save();
         await updatefollower.save();
 
         res.json(user);
-      } catch (err) {
+    } catch (err) {
         res.json({ message: err });
-      }
+    }
 }
 
 exports.search = async (req, res) => {
@@ -227,33 +231,30 @@ exports.search = async (req, res) => {
 
         let filteruser = user.filter((value) => value.email !== email)
         let isFollow = filteruser.map((data) => {
-            //console.log(data, " ---- ", data.followers.find((value) => value.email === email))
             return { '_id': data._id, 'name': data.name, 'email': data.email, 'isFollowing': data.followers.some((value) => value.email === email) }
         })
 
-        // console.log("Test result : ", isFollow)
         res.send(JSON.stringify({ foundresult: isFollow }))
     } catch (error) {
         return res.status(500).json({ message: "Invalid user" });
     }
 }
 
-exports.updateNotificationStatus = async(req,res)=>{
+exports.updateNotificationStatus = async (req, res) => {
     const email = req.body.email;
     try {
-        
+
         const user = await userSchema.findOne(
-          { email: email },
+            { email: email },
         );
 
-        user.notification= user.notification.map((value)=>{
-            //console.log("Notification array : ",value)
-            return {name : value.name, message :value.message ,seen : true};
+        user.notification = user.notification.map((value) => {
+            return { name: value.name, message: value.message, seen: true };
         })
 
         await user.save()
         res.json(user)
-      } catch (err) {
+    } catch (err) {
         res.json({ message: err });
-      }
+    }
 }

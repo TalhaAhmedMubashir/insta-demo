@@ -13,8 +13,7 @@ app.use(express.urlencoded({ extended: false }));
 //Connect to database
 try {
     mongoose.connect(
-        'mongodb://127.0.0.1:27017/InstaDemoApp',
-        // 'mongodb+srv://talhaahmed:dbuPjbN3A3LrrTOP@cluster0.3w3v1ab.mongodb.net/test',
+        process.env.DBLINK,
         {
             useUnifiedTopology: true,
             useNewUrlParser: true

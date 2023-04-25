@@ -39,6 +39,8 @@ export default function UserCredentials() {
             if (state.name.length > 0 && state.Email.length > 0 && state.Password.length > 0) {
                 const res = signupFunction({ name: state.name[0], email: state.Email[0], password: state.Password[0] })
                 // alert(res)
+            }else{
+                alert("Invalid password fields")
             }
         } else {
             alert("Invalid password fields")
